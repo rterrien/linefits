@@ -315,7 +315,7 @@ def main(raw_args=None):
     Config = create_configdict_from_file(args.ConfigFile)
 
     if args.filelist:
-        filesToMeasure =  np.genfromtxt(args.TargetFile,dtype=str,ndmin=1)
+        filesToMeasure =  np.loadtxt(args.TargetFile,dtype=str,ndmin=1)
     else:
         filesToMeasure = [args.TargetFile]
     
