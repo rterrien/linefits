@@ -245,9 +245,12 @@ def measure_and_save_linefits(filename,fiber,Config): #deleted outdir = None
         elif Config['wavecalmode'] == 'current':
             try:
                 wave = fitLib.getData(dataObj,fiber,'wave')[order,:]
-            except NameError:
-                logging.warning('Problem with wave ext for file {}, reverting to master'.format(filename))
-                wave = fitLib.getData(master_wcal,fiber,'wave')[order,:]
+            #except NameError:
+            #    logging.warning('Problem with wave ext for file {}, reverting to master'.format(filename))
+            #    wave = fitLib.getData(master_wcal,fiber,'wave')[order,:]
+            except:
+                logging.error('No wavecal provided for {}, skipping'.format(filename))
+                return
         else:
             logging.warning('wavecal mode unrecognized, defaulting to master')
             wave = fitLib.getData(master_wcal,fiber,'wave')[order,:]
