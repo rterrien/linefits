@@ -291,6 +291,29 @@ def measure_and_save_linefits(filename,fiber,Config): #deleted outdir = None
         outname_slim = os.path.join(outdir_slim,os.path.splitext(os.path.basename(filename))[0]+'_'+fiber+'_'+source+'_slim')
         np.save(outname_slim,out_all_slim)
 
+    if Config['save_slim_arr']:
+        # this is a lot faster to read than a pickled nested dict
+        outname_slim_arr = os.path.join(outdir_slim,os.path.splitext(os.path.basename(filename))[0]+'_'+fiber+'_'+source+'_slim_arr')
+        orders = []
+        indices = []
+        out_centroids_pix = []
+        out_centroids_wl = []
+        out_fwhm_pix = []
+        out_fwhm_wl = []
+        out_snr = []
+        for oi in out_all.keys():
+            for mi in out_all[oi].keys():
+                orders.append(oi)
+                indices.append(mi)
+                out_centroids_pix.append(out_all[oi][mi]['centroid_pix'])
+                out_centroids_wl.append(out_all[oi][mi]['centroid_wl'])
+                out_fwhm_pix.append(out_all[oi][mi]['fwhm_pix'])
+                out_fwhm_wl.append(out_all[oi][mi]['fwhm_wl'])
+                out_snr.append(out_all[oi][mi]['snr_peak'])
+        out_arr = np.vstack((orders,indices,out_centroids_pix,out_centroids_wl,out_fwhm_pix,out_fwhm_wl,out_snr))
+        colnames = 'order index centroid_pix centroid_wl fwhm_pix fwhm_wl snr_peak'
+        np.savez(outname_slim_arr,arr=out_arr,colnames=colnames)
+    
     return(out_all)
 
 
