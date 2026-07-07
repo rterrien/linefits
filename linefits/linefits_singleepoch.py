@@ -211,6 +211,8 @@ def measure_and_save_linefits(filename,fiber,Config): #deleted outdir = None
     #n_pixels find from wavecal below
     source = Config['source']
 
+    spectrograph = Config['spectrograph'] # checking if HPF or NEID to toggle unit conversions 
+
     peak_path = Config['master_peak_locs']
     initial_peak_locs_pix = np.load(peak_path,allow_pickle=True,encoding='latin1')[()]
     # this should be a nested ordered dictionary, where the first level is indexed by the orders of the spectrum to analyze
@@ -218,6 +220,7 @@ def measure_and_save_linefits(filename,fiber,Config): #deleted outdir = None
 
     master_wcal_path = Config['master_wavecal']
     #master_wcal = fits.getdata(master_wcal_path)
+    
     master_wcal = fits.open(master_wcal_path).copy()
 
     n_pixels = np.shape(master_wcal[1].data)[1]
@@ -240,6 +243,7 @@ def measure_and_save_linefits(filename,fiber,Config): #deleted outdir = None
     for order in initial_peak_locs_pix.keys():
         flux = fitLib.getData(dataObj,fiber,'flux')[order,:] #getattr(dataObj_this,fluxname).data[order,:]
         var = fitLib.getData(dataObj,fiber,'var')[order,:] #getattr(dataObj_this,varname).data[order,:]
+            
         if Config['wavecalmode'] == 'master':
             wave = fitLib.getData(master_wcal,fiber,'wave')[order,:]
         elif Config['wavecalmode'] == 'current':
@@ -255,10 +259,20 @@ def measure_and_save_linefits(filename,fiber,Config): #deleted outdir = None
             logging.warning('wavecal mode unrecognized, defaulting to master')
             wave = fitLib.getData(master_wcal,fiber,'wave')[order,:]
 
+     #adding in the toggle for HPF or NEID spectrograph 
+        if spectrograph == 'HPF':
+            integration_time = dataObj['PRIMARY'].header['ITIME'] # loadining the integration time for scaling the HPF flux
+            #only can load this in for HPF because NEID does not have the same header. 
+            flux = np.multiply(flux, integration_time)
+        elif spectrograph == 'NEID':
+            flux = flux 
+        else: 
+            logging.error('Invalid spectrograph option inputted, input either: HPF or NEID')
+
         if Config['subtractcontinuum']:
             fl_subtracted, _, _ = fitLib.subtract_Continuum_fromlines(flux)
             flux = fl_subtracted
-        
+
         if Config['usevariance']:
             sigma = np.sqrt(var)
         else:
@@ -290,7 +304,7 @@ def measure_and_save_linefits(filename,fiber,Config): #deleted outdir = None
     if Config['save_slim']:
         outname_slim = os.path.join(outdir_slim,os.path.splitext(os.path.basename(filename))[0]+'_'+fiber+'_'+source+'_slim')
         np.save(outname_slim,out_all_slim)
-
+    
     if Config['save_slim_arr']:
         # this is a lot faster to read than a pickled nested dict
         outname_slim_arr = os.path.join(outdir_slim,os.path.splitext(os.path.basename(filename))[0]+'_'+fiber+'_'+source+'_slim_arr')
