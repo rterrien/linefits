@@ -1,7 +1,5 @@
-#import hpfspec2
-# this version is modified with ability to treat the reference LFC and Etalon files in the same way
-# (in NEID, the LFC mode index file is used to id the modes, but this is not needed)
-from linefits import fitLib
+# below optionally has "from linefits import fitLib" if running as an install. Leaving this way for testing.
+import fitLib
 import sys
 import os
 import numpy as np 
@@ -136,7 +134,7 @@ def pool_measure_centroids_order(cmdset):
         #                              basic_window_check=cmdset['basic_window_check'])
     return out
 
-def measure_centroids_order(xx_pix, flux, window_centers, Config, variance=None, return_full=False):
+def measure_centroids_order(xx_pix, flux, window_centers, Config, variance=None, return_full=False, order=None):
     """ Measure the centroids of all lines in an order.
     
     Using a naive approach (same simple function for each line, weighted least squares,
@@ -178,7 +176,7 @@ def measure_centroids_order(xx_pix, flux, window_centers, Config, variance=None,
     assert len(xx) == len(flux)
 
     out = fitLib.fit_lines_order(xx_pix,flux,window_centers,sigma=sigma,fitfunction=fit_function,
-                                     fit_width_pix=fit_width,basic_window_check=True)
+                                     fit_width_pix=fit_width,basic_window_check=True,fiber=Config['fiber'],src=Config['source'],order=order)
 
     assert len(window_centers) == len(out)
 
@@ -279,7 +277,7 @@ def measure_and_save_linefits(filename,fiber,Config): #deleted outdir = None
             sigma = None
         
         out_all[order] = fitLib.fit_lines_order(xx_pix,flux,initial_peak_locs_pix[order],sigma=sigma,
-            fitfunction=fit_function,fit_width_pix=fit_width,basic_window_check=True,wl=wave)
+            fitfunction=fit_function,fit_width_pix=fit_width,basic_window_check=True,wl=wave,fiber=Config['fiber'],src=Config['source'],order=order)
         # if desired to peel out a subset of parameters, could copy over the measure_centroids wrapper
 
         out_all_slim_order = OrderedDict()
