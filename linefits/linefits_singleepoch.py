@@ -270,8 +270,12 @@ def measure_and_save_linefits(filename,fiber,Config): #deleted outdir = None
             logging.error('Invalid spectrograph option inputted, input either: HPF or NEID')
 
         if Config['subtractcontinuum']:
-            fl_subtracted, _, _ = fitLib.subtract_Continuum_fromlines(flux)
-            flux = fl_subtracted
+            try:
+                fl_subtracted, _, _ = fitLib.subtract_Continuum_fromlines(flux)
+                flux = fl_subtracted
+            except:
+                logging.error('Continuum subtraction broke for {}, skipping'.format(filename))
+                return
 
         if Config['usevariance']:
             sigma = np.sqrt(var)
